@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt Scanner - Extract & Tabulate Receipt Data</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📄 Receipt Scanner</h1>
+            <p>Upload receipt images - AI Vision automatically extracts and organizes data</p>
+        </header>
+
+        <div class="api-key-section">
+            <div class="api-key-container">
+                <label for="apiKeyInput">
+                    <svg class="key-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4"></path>
+                        <path d="m21 2-9.6 9.6"></path>
+                        <circle cx="7.5" cy="15.5" r="5.5"></circle>
+                    </svg>
+                    Google Gemini API Key <span style="color: #ef4444;">*</span>
+                </label>
+                <div class="api-key-input-wrapper">
+                    <input
+                        type="password"
+                        id="apiKeyInput"
+                        placeholder="AIzaSy... (required)"
+                        autocomplete="off"
+                        required>
+                    <button type="button" id="toggleApiKey" class="toggle-btn" title="Show/Hide API Key">
+                        <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
+                <p class="api-key-hint">Get your API key from <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a></p>
+            </div>
+        </div>
+
+        <div class="upload-section">
+            <div class="upload-area" id="uploadArea">
+                <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <p class="upload-text">Drag & drop receipt image here or click to browse</p>
+                <p class="upload-hint">Supports JPG, PNG, GIF, WEBP</p>
+                <input type="file" id="fileInput" accept="image/*,.pdf" hidden>
+            </div>
+
+            <div class="preview-section" id="previewSection" style="display: none;">
+                <img id="imagePreview" alt="Receipt preview">
+                <button class="btn btn-remove" id="removeBtn">Remove</button>
+            </div>
+
+            <button class="btn btn-primary" id="uploadBtn" disabled>
+                <span id="btnText">Upload & Scan Receipt</span>
+                <span id="btnLoader" class="loader" style="display: none;"></span>
+            </button>
+
+            <div class="progress-bar" id="progressBar" style="display: none;">
+                <div class="progress-fill" id="progressFill"></div>
+                <p class="progress-text" id="progressText">Processing...</p>
+            </div>
+        </div>
+
+        <div class="results-section" id="resultsSection" style="display: none;">
+            <div class="section-header">
+                <h2>Extracted Data</h2>
+                <button class="btn btn-secondary" id="exportBtn">Export to CSV</button>
+            </div>
+
+            <div class="table-wrapper">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Receipt No</th>
+                            <th>Company Name</th>
+                            <th>Description</th>
+                            <th>Amount (RM)</th>
+                            <th>Advance to Co(RM)</th>
+                            <th>Category</th>
+                            <th>Payment Type</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="raw-text-section">
+                <h3>Receipt Summary</h3>
+                <pre id="rawText"></pre>
+            </div>
+        </div>
+
+        <footer>
+            <p>Powered by Google Gemini | Built with ❤️</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
