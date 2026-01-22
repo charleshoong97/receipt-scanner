@@ -48,18 +48,21 @@
                     <polyline points="17 8 12 3 7 8"></polyline>
                     <line x1="12" y1="3" x2="12" y2="15"></line>
                 </svg>
-                <p class="upload-text">Drag & drop receipt image here or click to browse</p>
-                <p class="upload-hint">Supports JPG, PNG, GIF, WEBP</p>
-                <input type="file" id="fileInput" accept="image/*,.pdf" hidden>
+                <p class="upload-text">Drag & drop receipt images here or click to browse</p>
+                <p class="upload-hint">Supports JPG, PNG, GIF, WEBP | Multiple files allowed</p>
+                <input type="file" id="fileInput" accept="image/*,.pdf" multiple hidden>
             </div>
 
             <div class="preview-section" id="previewSection" style="display: none;">
-                <img id="imagePreview" alt="Receipt preview">
-                <button class="btn btn-remove" id="removeBtn">Remove</button>
+                <div class="preview-header">
+                    <h3><span id="fileCount">0</span> file(s) selected</h3>
+                    <button class="btn btn-remove-all" id="removeAllBtn">Remove All</button>
+                </div>
+                <div class="preview-grid" id="previewGrid"></div>
             </div>
 
             <button class="btn btn-primary" id="uploadBtn" disabled>
-                <span id="btnText">Upload & Scan Receipt</span>
+                <span id="btnText">Upload & Scan Receipts</span>
                 <span id="btnLoader" class="loader" style="display: none;"></span>
             </button>
 

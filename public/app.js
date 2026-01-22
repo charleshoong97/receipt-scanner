@@ -3,10 +3,11 @@ const apiKeyInput = document.getElementById('apiKeyInput');
 const toggleApiKey = document.getElementById('toggleApiKey');
 const uploadArea = document.getElementById('uploadArea');
 const fileInput = document.getElementById('fileInput');
-const imagePreview = document.getElementById('imagePreview');
 const previewSection = document.getElementById('previewSection');
+const previewGrid = document.getElementById('previewGrid');
+const fileCount = document.getElementById('fileCount');
 const uploadBtn = document.getElementById('uploadBtn');
-const removeBtn = document.getElementById('removeBtn');
+const removeAllBtn = document.getElementById('removeAllBtn');
 const btnText = document.getElementById('btnText');
 const btnLoader = document.getElementById('btnLoader');
 const progressBar = document.getElementById('progressBar');
@@ -17,7 +18,7 @@ const tableBody = document.getElementById('tableBody');
 const rawText = document.getElementById('rawText');
 const exportBtn = document.getElementById('exportBtn');
 
-let selectedFile = null;
+let selectedFiles = [];
 let extractedData = [];
 
 // Event Listeners
@@ -28,7 +29,7 @@ toggleApiKey.addEventListener('click', () => {
 
 uploadArea.addEventListener('click', () => fileInput.click());
 fileInput.addEventListener('change', handleFileSelect);
-removeBtn.addEventListener('click', resetUpload);
+removeAllBtn.addEventListener('click', resetUpload);
 uploadBtn.addEventListener('click', uploadAndProcess);
 exportBtn.addEventListener('click', exportToCSV);
 
@@ -45,36 +46,63 @@ uploadArea.addEventListener('dragleave', () => {
 uploadArea.addEventListener('drop', (e) => {
     e.preventDefault();
     uploadArea.classList.remove('drag-over');
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) {
-        handleFile(file);
+    const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+    if (files.length > 0) {
+        handleFiles(files);
     }
 });
 
 // File Handling
 function handleFileSelect(e) {
-    const file = e.target.files[0];
-    if (file) {
-        handleFile(file);
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+        handleFiles(files);
     }
 }
 
-function handleFile(file) {
-    selectedFile = file;
-    const reader = new FileReader();
+function handleFiles(files) {
+    selectedFiles = files;
+    previewGrid.innerHTML = '';
 
-    reader.onload = (e) => {
-        imagePreview.src = e.target.result;
-        uploadArea.style.display = 'none';
-        previewSection.style.display = 'block';
-        uploadBtn.disabled = false;
-    };
+    files.forEach((file, index) => {
+        const reader = new FileReader();
 
-    reader.readAsDataURL(file);
+        reader.onload = (e) => {
+            const previewItem = document.createElement('div');
+            previewItem.className = 'preview-item';
+            previewItem.innerHTML = `
+                <img src="${e.target.result}" alt="Receipt ${index + 1}">
+                <button class="btn-remove-single" data-index="${index}" title="Remove">×</button>
+                <span class="preview-label">${index + 1}</span>
+            `;
+            previewGrid.appendChild(previewItem);
+
+            // Add remove handler for individual files
+            const removeBtn = previewItem.querySelector('.btn-remove-single');
+            removeBtn.addEventListener('click', () => removeSingleFile(index));
+        };
+
+        reader.readAsDataURL(file);
+    });
+
+    fileCount.textContent = files.length;
+    uploadArea.style.display = 'none';
+    previewSection.style.display = 'block';
+    uploadBtn.disabled = false;
+}
+
+function removeSingleFile(index) {
+    selectedFiles = selectedFiles.filter((_, i) => i !== index);
+
+    if (selectedFiles.length === 0) {
+        resetUpload();
+    } else {
+        handleFiles(selectedFiles);
+    }
 }
 
 function resetUpload() {
-    selectedFile = null;
+    selectedFiles = [];
     fileInput.value = '';
     uploadArea.style.display = 'block';
     previewSection.style.display = 'none';
@@ -85,7 +113,7 @@ function resetUpload() {
 
 // Upload and Process
 async function uploadAndProcess() {
-    if (!selectedFile) return;
+    if (selectedFiles.length === 0) return;
 
     // Validate API key is provided (mandatory)
     const apiKey = apiKeyInput.value.trim();
@@ -95,10 +123,6 @@ async function uploadAndProcess() {
         return;
     }
 
-    const formData = new FormData();
-    formData.append('receipt', selectedFile);
-    formData.append('apiKey', apiKey);
-
     // Show loading state
     uploadBtn.disabled = true;
     btnText.style.display = 'none';
@@ -106,31 +130,57 @@ async function uploadAndProcess() {
     progressBar.style.display = 'block';
     resultsSection.style.display = 'none';
 
-    try {
-        const response = await fetch('/api/upload', {
-            method: 'POST',
-            body: formData
-        });
+    const allResults = [];
+    let processedCount = 0;
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Upload failed');
+    try {
+        // Process files sequentially
+        for (let i = 0; i < selectedFiles.length; i++) {
+            const file = selectedFiles[i];
+            updateProgress(
+                (i / selectedFiles.length) * 100,
+                `Processing receipt ${i + 1} of ${selectedFiles.length}...`
+            );
+
+            const formData = new FormData();
+            formData.append('receipt', file);
+            formData.append('apiKey', apiKey);
+
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error(`Failed to process ${file.name}:`, errorData.error);
+                // Continue with other files
+                continue;
+            }
+
+            const result = await response.json();
+            if (result.data && result.data.length > 0) {
+                allResults.push(...result.data);
+            }
+
+            processedCount++;
         }
 
-        const result = await response.json();
-
         // Update progress
-        updateProgress(100, 'Processing complete!');
+        updateProgress(100, `Processing complete! ${processedCount}/${selectedFiles.length} receipts processed.`);
 
         // Display results
         setTimeout(() => {
-            displayResults(result);
+            displayResults({ data: allResults, text: `Processed ${processedCount} receipts` });
             resetUploadButton();
         }, 500);
 
     } catch (error) {
         console.error('Error:', error);
-        alert('Failed to process receipt. Please try again.');
+        alert(`Failed to process receipts. ${processedCount}/${selectedFiles.length} were successful.`);
+        if (allResults.length > 0) {
+            displayResults({ data: allResults, text: `Partial results: ${processedCount} receipts` });
+        }
         resetUploadButton();
         progressBar.style.display = 'none';
     }
