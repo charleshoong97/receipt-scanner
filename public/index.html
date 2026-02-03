@@ -37,7 +37,46 @@
                         </svg>
                     </button>
                 </div>
+
+                <div class="api-key-actions">
+                    <input
+                        type="text"
+                        id="apiKeyRemark"
+                        placeholder="Remark (e.g., Personal, Work, Project X)"
+                        class="remark-input">
+                    <button type="button" id="saveApiKey" class="btn btn-save">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        Save Key
+                    </button>
+                    <button type="button" id="manageKeys" class="btn btn-manage">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                        Manage Keys
+                    </button>
+                </div>
+
                 <p class="api-key-hint">Get your API key from <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a></p>
+            </div>
+        </div>
+
+        <!-- API Key Management Modal -->
+        <div id="keyManagerModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Saved API Keys</h2>
+                    <button class="modal-close" id="closeKeyManager">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div id="savedKeysList"></div>
+                </div>
             </div>
         </div>
 
@@ -75,13 +114,17 @@
         <div class="results-section" id="resultsSection" style="display: none;">
             <div class="section-header">
                 <h2>Extracted Data</h2>
-                <button class="btn btn-secondary" id="exportBtn">Export to CSV</button>
+                <div class="results-actions">
+                    <button class="btn btn-secondary" id="exportBtn">Export to CSV</button>
+                    <button class="btn btn-remove" id="clearResultsBtn">Clear All Results</button>
+                </div>
             </div>
 
             <div class="table-wrapper">
                 <table id="dataTable">
                     <thead>
                         <tr>
+                            <th>Actions</th>
                             <th>Date</th>
                             <th>Receipt No</th>
                             <th>Company Name</th>
